@@ -7,6 +7,7 @@ When agent want to go specific cell, we get that information of specific cell fr
 @author Junfeng Zhao
 */
 public class GameEnvironment {
+	private int failedCounter;
 	private int dim;
 	private int mineQuantity;
 	private int[][] environment;
@@ -14,8 +15,14 @@ public class GameEnvironment {
 	private int[] yDirection = {0, 1, 0, -1, 1, -1, 1, -1};
 	
 	public static void main(String[] args) {
-		GameEnvironment a = new GameEnvironment(10,12);
-		a.initEnvironment();
+		GameEnvironment a = new GameEnvironment(5, 3);
+		a.printEnvironment();
+		System.out.println("=====================");
+		for (int row = 0; row < a.dim; row++) {
+			for (int col = 0; col < a.dim; col++) {
+				a.mistake(row, col);
+			}
+		}
 		a.printEnvironment();
 	}
 	
@@ -23,6 +30,7 @@ public class GameEnvironment {
 		this.dim = dim;
 		this.mineQuantity = mine;
 		this.environment = new int[dim][dim];
+		this.failedCounter = 0;
 		initEnvironment();
 	}
 	
@@ -53,22 +61,61 @@ public class GameEnvironment {
 	}
 	
 	/**
+	We allow mistakes happen by getting off that mine and continue game.
+	In this method, it will re-compute clue around giving mine and remove the mine from environment.
+	And environment have a failed counter to record how many times this method was called.
+	@param x x value of mine discovered by mistake
+	@param y y value of mine discovered by mistake
+	*/
+	public void mistake(int x, int y) {
+		if (environment[x][y] == -1) {
+			this.mineQuantity -= 1;
+			this.failedCounter += 1;
+			environment[x][y] = checkClue(x,y);
+			for (int i = 0; i < 8; i++) {
+				if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
+					if (environment[x + xDirection[i]][y + yDirection[i]] > 0) {
+						environment[x + xDirection[i]][y + yDirection[i]] -= 1;
+					}
+				}
+			}
+		}
+	}
+	/**
 	Initial environment for the game. 
 	setup mine, and compute clue for each cell.
 	*/
 	public void initEnvironment() {
-		int count = 1;
-		while (count <= mineQuantity) {
+		int count = 0;
+		while (count < this.mineQuantity) {
 			int x = (int)(Math.random() * dim);
 			int y = (int)(Math.random() * dim);
 			if (checkValidMine(x,y)) {
 				environment[x][y] = -1;
 				updateClue(x,y);
+				count++;
 			}
-			count++;
 		}
 	}
 
+	/**
+	Check around how many mines.
+	@param x x value of position want to check
+	@param y y value of position want to check
+	@return int clue number
+	*/
+	private int checkClue(int x, int y) {
+		int clue = 0;
+		for (int i = 0; i < 8; i++) {
+			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
+				if (environment[x + xDirection[i]][y + yDirection[i]] == -1) {
+					clue += 1;
+				}
+			}
+		}
+		return clue;
+	}
+	
 	/**
 	Update the clue after we put a new mine.
 	@param x x value of mine. 
@@ -102,5 +149,13 @@ public class GameEnvironment {
 	*/
 	private Boolean checkValidMine(int x, int y) {
 		return environment[x][y] == -1 ? false : true;
+	}
+	
+	/**
+	Getter of failed counter
+	@return int how many time agent failed.
+	*/
+	public int getFailedCounter() {
+		return this.failedCounter;
 	}
 }
