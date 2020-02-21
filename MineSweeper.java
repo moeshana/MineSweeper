@@ -11,7 +11,7 @@ import javax.swing.JPanel;
 
 public class MineSweeper {
 	private final int DIM = 20;
-	private final int MINE_QUANTITY = 100;
+	private final int MINE_QUANTITY = 300;
 	private final int SPOT_SIZE = 30;
 	private GameEnvironment gameEnv;
 	private Spot[][] map;
@@ -33,6 +33,7 @@ public class MineSweeper {
 	Test map only..
 	*/
 	private void whosYourDaddy() {
+		
 		for (int row = 0; row < DIM; row++) {
 			for (int col = 0; col < DIM; col++) {
 				int info = gameEnv.iWannaInfo(row, col);
@@ -43,6 +44,28 @@ public class MineSweeper {
 				}
 			}
 		}
+		
+		int myRow = 19;
+			for (int col = 0; col < DIM; col++) {
+				if (map[myRow][col].isMayMine()) {
+					gameEnv.mistake(myRow, col);
+				}
+		}
+		
+		for (int row = 0; row < DIM; row++) {
+			for (int col = 0; col < DIM; col++) {
+				int info = gameEnv.iWannaInfo(row, col);
+				if (info == -1) {
+					System.out.println(row + " : " + col);
+					map[row][col].setMayMine(true);
+				} else {
+					map[row][col].setClue(info);					
+					map[row][col].setMayMine(false);
+				}
+			}
+		}
+		this.mainWindow.repaint();
+
 	}
 	/**
 	Setup map for game
