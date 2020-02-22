@@ -1,12 +1,22 @@
 package MineSweeper;
 
-import javax.swing.JPanel;
-
-public class KnowledgeBase extends JPanel{
-	private static final long serialVersionUID = 1L;
-
-	public KnowledgeBase() {
-		super();
+public class KnowledgeBase {
+	private int[][] knownWorld;
+	
+	public KnowledgeBase(int dim) {
+	
 	}
 
+	public void learnInfo(MinePoint p, int clue) {
+		//do..... then
+		think();
+	}
+	
+	private void think() {
+		
+	}
+	
+	public MinePoint godsInstruction() {
+		return new MinePoint(0,0);
+	}
 }

@@ -80,6 +80,7 @@ public class GameEnvironment {
 				}
 			}
 		}
+		System.out.println("Failed " + failedCounter + " times (point " + x + " : " + y + ")");
 	}
 	/**
 	Initial environment for the game. 
@@ -90,7 +91,7 @@ public class GameEnvironment {
 		while (count < this.mineQuantity) {
 			int x = (int)(Math.random() * dim);
 			int y = (int)(Math.random() * dim);
-			if (checkValidMine(x,y)) {
+			if (checkValidMine(x, y)) {
 				environment[x][y] = -1;
 				updateClue(x,y);
 				count++;
