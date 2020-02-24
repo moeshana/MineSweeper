@@ -1,6 +1,8 @@
 package MineSweeper;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class GameAgent {
 //	private KnowledgeBase kb;
@@ -9,6 +11,7 @@ public class GameAgent {
 	private int dim;
 	private HashSet<MinePoint> safePoints;
 	private HashSet<MinePoint> minePoints;
+	private Queue<Action> unsurePoints;
 	private int[] xDirection = {1, 0, -1, 0, 1, 1, -1, -1};
 	private int[] yDirection = {0, 1, 0, -1, 1, -1, 1, -1};
 	
@@ -42,6 +45,7 @@ public class GameAgent {
 		initCloseSet();
 		safePoints = new HashSet<MinePoint>();
 		minePoints = new HashSet<MinePoint>();
+		unsurePoints = new LinkedList<Action>();
 		knownWorld = new int[dim][dim];
 		initKnownWorld();
 	}
@@ -49,7 +53,11 @@ public class GameAgent {
 	public Action goNext() {
 		MinePoint nextPoint;	
 		if (safePoints.isEmpty() && minePoints.isEmpty()) {
+				if (doubleCheck()) {
+					return goNext();
+				}
 				nextPoint = closedSet.iterator().next();
+				System.out.println("Randomly pick up : " + nextPoint); 
 				closedSet.remove(nextPoint);
 				return new Action(nextPoint, 1);
 		} else {
@@ -73,19 +81,60 @@ public class GameAgent {
 	}
 	
 	
-	private void compute(MinePoint p, int clue) {
+	private boolean doubleCheck() {
+		boolean addNew = false;
+		int unsureSize = unsurePoints.size();
+		for (int i = 0; i < unsureSize; i++) {
+			Action action = unsurePoints.poll();
+			if (compute(action.getNextPoint(), action.getActionCango())) {
+				addNew = true;
+			}
+		}
+		return addNew;
+	}
+	private boolean compute(MinePoint p, int clue) {
+		boolean findNewInfo = false;
 		if (clue == 0) {
 			for (int i = 0; i < 8; i++) {
 				if (checkValidPosition(p.getX() + xDirection[i], p.getY() + yDirection[i])) {
 					MinePoint np = new MinePoint(p.getX() + xDirection[i], p.getY() + yDirection[i]);
 					if (knownWorld[np.getX()][np.getY()] == Integer.MAX_VALUE) {
-						System.out.println(np);
 						safePoints.add(np);
+						knownWorld[np.getX()][np.getY()] = 0;
 						closedSet.remove(np);
+						findNewInfo = true;
 					}
 				}
 			}
+		} else {
+			int mineCount = 0;
+			Queue<MinePoint> temp = new LinkedList<MinePoint>(); 
+			for (int i = 0; i < 8; i++) {
+				if (checkValidPosition(p.getX() + xDirection[i], p.getY() + yDirection[i])) {
+					MinePoint np = new MinePoint(p.getX() + xDirection[i], p.getY() + yDirection[i]);
+					if (knownWorld[np.getX()][np.getY()] == Integer.MAX_VALUE) {
+						mineCount++;
+						temp.add(np);
+					} else {
+						if (knownWorld[np.getX()][np.getY()] == -1) {
+							mineCount++;
+						} 
+					}
+				}
+			}
+			if (mineCount != clue) {
+				unsurePoints.add(new Action(p, clue));
+			} else {
+				while (!temp.isEmpty()) {
+					MinePoint nextPoint = temp.poll();
+					knownWorld[nextPoint.getX()][nextPoint.getY()] = -1;
+					minePoints.add(nextPoint);
+					closedSet.remove(nextPoint);
+				}
+				findNewInfo = true;
+			}
 		}
+		return findNewInfo;
 	}
 
 	/**
@@ -117,7 +166,7 @@ public class GameAgent {
 	@return true game over, otherwise false;
 	*/
 	public boolean gameOver() {
-		return this.closedSet.isEmpty();
+		return this.closedSet.isEmpty() && this.safePoints.isEmpty() && this.minePoints.isEmpty();
 	}
 	
 	/**

@@ -1,5 +1,8 @@
 package MineSweeper;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 /**
 Create a mine sweeper environment. Include all mine and clue information.
 This information is not available for agent. 
@@ -11,6 +14,7 @@ public class GameEnvironment {
 	private int dim;
 	private int mineQuantity;
 	private int[][] environment;
+	private Queue<MinePoint> dropedMine;
 	private int[] xDirection = {1, 0, -1, 0, 1, 1, -1, -1};
 	private int[] yDirection = {0, 1, 0, -1, 1, -1, 1, -1};
 	
@@ -31,6 +35,7 @@ public class GameEnvironment {
 		this.mineQuantity = mine;
 		this.environment = new int[dim][dim];
 		this.failedCounter = 0;
+		this.dropedMine = new LinkedList<MinePoint>();
 		initEnvironment();
 	}
 	
@@ -62,25 +67,16 @@ public class GameEnvironment {
 	
 	/**
 	We allow mistakes happen by getting off that mine and continue game.
-	In this method, it will re-compute clue around giving mine and remove the mine from environment.
+	In this method, it will re-compute clue around giving mine and remove the mine from environment.  => cancelled
 	And environment have a failed counter to record how many times this method was called.
 	@param x x value of mine discovered by mistake
 	@param y y value of mine discovered by mistake
 	*/
 	public void mistake(int x, int y) {
 		if (environment[x][y] == -1) {
-			this.mineQuantity -= 1;
 			this.failedCounter += 1;
-			environment[x][y] = checkClue(x,y);
-			for (int i = 0; i < 8; i++) {
-				if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
-					if (environment[x + xDirection[i]][y + yDirection[i]] > 0) {
-						environment[x + xDirection[i]][y + yDirection[i]] -= 1;
-					}
-				}
-			}
+			System.out.println("Failed " + failedCounter + " times (point " + x + " : " + y + ")");
 		}
-		System.out.println("Failed " + failedCounter + " times (point " + x + " : " + y + ")");
 	}
 	/**
 	Initial environment for the game. 
@@ -158,5 +154,13 @@ public class GameEnvironment {
 	*/
 	public int getFailedCounter() {
 		return this.failedCounter;
+	}
+	public void recover() {
+		this.failedCounter = 0;
+		while (!dropedMine.isEmpty()) {
+			MinePoint np = dropedMine.poll();
+			environment[np.getX()][np.getY()] = -1;
+			updateClue(np.getX(), np.getY());
+		}
 	}
 }

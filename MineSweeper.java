@@ -4,14 +4,16 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.GridLayout;
+
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 
 
 public class MineSweeper {
-	private final int DIM = 10;
-	private final int MINE_QUANTITY = 15;
+	private final int DIM = 15;
+	private final int MINE_QUANTITY = 20;
 	private final int SPOT_SIZE = 30;
 	private GameEnvironment gameEnv;
 	private MineSpot[][] map;
@@ -28,10 +30,13 @@ public class MineSweeper {
 	public MineSweeper() {
 		initWindow();
 		setupMap();
+		startGame();
 //		whosYourDaddy();
+	}
+	private void startGame() {
 		gameAgent = new GameAgent(this.DIM);
 		this.timer = new javax.swing.Timer(
-				500, 
+				200, 
 				ae -> {
 					if (!gameAgent.gameOver()) {
 						Action next = gameAgent.goNext();
@@ -42,10 +47,10 @@ public class MineSweeper {
 						} else {
 							if (clue == -1) {
 								// go and check but get a mine => AI wrong
-								getWrong(next.getNextPoint().getX(), next.getNextPoint().getY());
+								gameEnv.mistake(next.getNextPoint().getX(), next.getNextPoint().getY());
 								clue = gameEnv.iWannaInfo(next.getNextPoint().getX(), next.getNextPoint().getY());
-								gameAgent.actionFeedback(new Action(next.getNextPoint(), clue));
-								map[next.getNextPoint().getX()][next.getNextPoint().getY()].getWrong();
+								gameAgent.actionFeedback(new Action(next.getNextPoint(), clue));								
+								map[next.getNextPoint().getX()][next.getNextPoint().getY()].setWrong();
 							} else {
 								// correctly, and mark a mine
 								// no feedback
@@ -57,34 +62,13 @@ public class MineSweeper {
 						mainWindow.repaint();
 					} else {
 						this.timer.stop();
+						System.out.println(calcResult());
 						System.out.println("Done");
+						mainWindow.repaint();
 					}
 				});
 			timer.start();
 
-	}
-	
-	private void getWrong(int x, int y) {
-		gameEnv.mistake(x, y);
-		updateCurrentMap();
-	}
-	
-	private void updateCurrentMap() {
-		for (int row = 0; row < DIM; row++) {
-			for (int col = 0; col < DIM; col++) {
-				if (!map[row][col].getUnknown()) {
-					int info = gameEnv.iWannaInfo(row, col);
-					if (info == -1) {
-						map[row][col].setMayMine(true);
-					} else {
-						map[row][col].setClue(info);					
-						map[row][col].setMayMine(false);
-					}
-				}
-			}
-		}
-		this.mainWindow.repaint();
-		
 	}
 	
 	/**
@@ -123,7 +107,24 @@ public class MineSweeper {
 		}
 		this.mainWindow.repaint();
 	}
-	
+	private String calcResult(){
+		int total = 0;
+		int correct = 0;
+		int failedCount = gameEnv.getFailedCounter();
+		for (int row = 0; row < DIM; row++) {
+			for (int col = 0; col < DIM; col++) {
+				if (map[row][col].isMayMine()) {
+					total += 1;
+					if (gameEnv.iWannaInfo(row, col) == -1) {
+						correct += 1;
+					} else {
+						map[row][col].setWrong2();
+					}
+				}
+			}
+		}
+		return failedCount + " / " + MINE_QUANTITY + " : " + correct + " / " + total;
+	}
 	/**
 	Setup map for game
 	*/
@@ -138,6 +139,20 @@ public class MineSweeper {
 			}
 		}
 	}
+	private void restart() {
+		System.out.println(">>>>>>>>>>>restart the game<<<<<<<<<<<");
+		if (timer != null) {
+			timer.stop();
+		}
+		for (int row = 0; row < DIM; row++) {
+			for (int col = 0; col < DIM; col++) {
+				map[row][col].reset();
+			}
+		}
+		gameEnv.recover();
+		mainWindow.repaint();
+		startGame();
+	}
 	/**
 	Initial main window for user
 	*/
@@ -148,6 +163,11 @@ public class MineSweeper {
 		mainPanel.setLayout(new GridLayout(DIM, DIM));
 		mainPanel.setPreferredSize(new Dimension(SPOT_SIZE * DIM, SPOT_SIZE * DIM));
 		displayPanel = new JPanel();
+		JButton replay = new JButton("re-play");
+		replay.addActionListener(ae -> {
+			restart();
+		});
+		displayPanel.add(replay);
 		displayPanel.setPreferredSize(new Dimension(SPOT_SIZE * DIM, 45));
 		mainWindow.add(mainPanel, BorderLayout.CENTER);
 		mainWindow.add(displayPanel, BorderLayout.NORTH);
