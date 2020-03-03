@@ -10,6 +10,7 @@ When agent want to go specific cell, we get that information of specific cell fr
 @author Junfeng Zhao
 */
 public class GameEnvironment {
+	final int MINE_PLACEHOLDER = Integer.MIN_VALUE;
 	private int failedCounter;
 	private int dim;
 	private int mineQuantity;
@@ -73,7 +74,7 @@ public class GameEnvironment {
 	@param y y value of mine discovered by mistake
 	*/
 	public void mistake(int x, int y) {
-		if (environment[x][y] == -1) {
+		if (environment[x][y] == MINE_PLACEHOLDER) {
 			this.failedCounter += 1;
 			System.out.println("Failed " + failedCounter + " times (point " + x + " : " + y + ")");
 		}
@@ -88,7 +89,7 @@ public class GameEnvironment {
 			int x = (int)(Math.random() * dim);
 			int y = (int)(Math.random() * dim);
 			if (checkValidMine(x, y)) {
-				environment[x][y] = -1;
+				environment[x][y] = MINE_PLACEHOLDER;
 				updateClue(x,y);
 				count++;
 			}
@@ -105,7 +106,7 @@ public class GameEnvironment {
 		int clue = 0;
 		for (int i = 0; i < 8; i++) {
 			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
-				if (environment[x + xDirection[i]][y + yDirection[i]] == -1) {
+				if (environment[x + xDirection[i]][y + yDirection[i]] == MINE_PLACEHOLDER) {
 					clue += 1;
 				}
 			}
@@ -121,7 +122,7 @@ public class GameEnvironment {
 	private void updateClue(int x, int y) {
 		for (int i = 0; i < 8; i++) {
 			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
-				if (environment[x + xDirection[i]][y + yDirection[i]] != -1) {
+				if (environment[x + xDirection[i]][y + yDirection[i]] != MINE_PLACEHOLDER) {
 					environment[x + xDirection[i]][y + yDirection[i]] += 1;
 				}
 			}
@@ -145,7 +146,7 @@ public class GameEnvironment {
 	@return true if there is no mine, otherwise there is a mine already.
 	*/
 	private Boolean checkValidMine(int x, int y) {
-		return environment[x][y] == -1 ? false : true;
+		return environment[x][y] == MINE_PLACEHOLDER ? false : true;
 	}
 	
 	/**
@@ -155,11 +156,15 @@ public class GameEnvironment {
 	public int getFailedCounter() {
 		return this.failedCounter;
 	}
+	
+	/**
+	reset the map, put all removed mine back
+	*/
 	public void recover() {
 		this.failedCounter = 0;
 		while (!dropedMine.isEmpty()) {
 			MinePoint np = dropedMine.poll();
-			environment[np.getX()][np.getY()] = -1;
+			environment[np.getX()][np.getY()] = MINE_PLACEHOLDER;
 			updateClue(np.getX(), np.getY());
 		}
 	}

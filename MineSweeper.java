@@ -12,8 +12,9 @@ import javax.swing.JPanel;
 
 
 public class MineSweeper {
-	private final int DIM = 15;
-	private final int MINE_QUANTITY = 20;
+	private final int DIM = 10;
+	private final int MINE_QUANTITY = 15;
+	final int MINE_PLACEHOLDER = Integer.MIN_VALUE;
 	private final int SPOT_SIZE = 30;
 	private GameEnvironment gameEnv;
 	private MineSpot[][] map;
@@ -21,7 +22,6 @@ public class MineSweeper {
 	private JPanel mainPanel;
 	private JPanel displayPanel;
 	private javax.swing.Timer timer;
-	private GameAgent gameAgent;
 
 	
 	public static void main(String... args) {
@@ -30,11 +30,11 @@ public class MineSweeper {
 	public MineSweeper() {
 		initWindow();
 		setupMap();
-		startGame();
 //		whosYourDaddy();
 	}
-	private void startGame() {
-		gameAgent = new GameAgent(this.DIM);
+	private void startGameBasic() {
+		restart();
+		GameAgent gameAgent = new GameAgent(this.DIM);
 		this.timer = new javax.swing.Timer(
 				200, 
 				ae -> {
@@ -45,7 +45,7 @@ public class MineSweeper {
 						if (next.getActionCango() == 0) {  // no feedback
 							map[next.getNextPoint().getX()][next.getNextPoint().getY()].setMayMine(true);
 						} else {
-							if (clue == -1) {
+							if (clue == MINE_PLACEHOLDER) {
 								// go and check but get a mine => AI wrong
 								gameEnv.mistake(next.getNextPoint().getX(), next.getNextPoint().getY());
 								clue = gameEnv.iWannaInfo(next.getNextPoint().getX(), next.getNextPoint().getY());
@@ -67,10 +67,41 @@ public class MineSweeper {
 						mainWindow.repaint();
 					}
 				});
-			timer.start();
-
+		timer.start();
 	}
-	
+	private void startGameImpoved() {
+		restart();
+		ImprovedGameAgent gameAgent = new ImprovedGameAgent(this.DIM);
+		this.timer = new javax.swing.Timer(
+				200, 
+				ae -> {
+					if (!gameAgent.gameOver()) {
+						Action next = gameAgent.goNext();
+						System.out.println(next.getNextPoint());
+						int clue = gameEnv.iWannaInfo(next.getNextPoint().getX(), next.getNextPoint().getY());
+						if (next.getActionCango() == 0) {  //
+							map[next.getNextPoint().getX()][next.getNextPoint().getY()].setMayMine(true);
+						} else {
+							if (clue == MINE_PLACEHOLDER) {
+								gameEnv.mistake(next.getNextPoint().getX(), next.getNextPoint().getY());
+								clue = gameEnv.iWannaInfo(next.getNextPoint().getX(), next.getNextPoint().getY());
+								gameAgent.actionFeedback(new Action(next.getNextPoint(), clue));								
+								map[next.getNextPoint().getX()][next.getNextPoint().getY()].setWrong();
+							} else {
+								gameAgent.actionFeedback(new Action(next.getNextPoint(), clue));
+								map[next.getNextPoint().getX()][next.getNextPoint().getY()].setClue(clue);
+							}
+						}
+						mainWindow.repaint();
+					} else {
+						this.timer.stop();
+						System.out.println(calcResult());
+						System.out.println("Done");
+						mainWindow.repaint();
+					}
+				});
+		timer.start();
+	}
 	/**
 	Test map only..
 	*/
@@ -79,7 +110,7 @@ public class MineSweeper {
 		for (int row = 0; row < DIM; row++) {
 			for (int col = 0; col < DIM; col++) {
 				int info = gameEnv.iWannaInfo(row, col);
-				if (info == -1) {
+				if (info == MINE_PLACEHOLDER) {
 					map[row][col].setMayMine(true);
 				} else {
 					map[row][col].setClue(info);
@@ -97,7 +128,7 @@ public class MineSweeper {
 		for (int row = 0; row < DIM; row++) {
 			for (int col = 0; col < DIM; col++) {
 				int info = gameEnv.iWannaInfo(row, col);
-				if (info == -1) {
+				if (info == MINE_PLACEHOLDER) {
 					map[row][col].setMayMine(true);
 				} else {
 					map[row][col].setClue(info);					
@@ -115,7 +146,7 @@ public class MineSweeper {
 			for (int col = 0; col < DIM; col++) {
 				if (map[row][col].isMayMine()) {
 					total += 1;
-					if (gameEnv.iWannaInfo(row, col) == -1) {
+					if (gameEnv.iWannaInfo(row, col) == MINE_PLACEHOLDER) {
 						correct += 1;
 					} else {
 						map[row][col].setWrong2();
@@ -151,8 +182,8 @@ public class MineSweeper {
 		}
 		gameEnv.recover();
 		mainWindow.repaint();
-		startGame();
 	}
+
 	/**
 	Initial main window for user
 	*/
@@ -163,11 +194,19 @@ public class MineSweeper {
 		mainPanel.setLayout(new GridLayout(DIM, DIM));
 		mainPanel.setPreferredSize(new Dimension(SPOT_SIZE * DIM, SPOT_SIZE * DIM));
 		displayPanel = new JPanel();
-		JButton replay = new JButton("re-play");
-		replay.addActionListener(ae -> {
-			restart();
+		JButton basicPlay = new JButton("BP");
+		basicPlay.addActionListener(ae -> {
+			startGameBasic();
 		});
-		displayPanel.add(replay);
+		displayPanel.add(basicPlay);
+		JButton improvePlay = new JButton("IP");
+		improvePlay.addActionListener(ae -> {
+			startGameImpoved();
+		});
+		displayPanel.add(improvePlay);
+		
+		
+		
 		displayPanel.setPreferredSize(new Dimension(SPOT_SIZE * DIM, 45));
 		mainWindow.add(mainPanel, BorderLayout.CENTER);
 		mainWindow.add(displayPanel, BorderLayout.NORTH);

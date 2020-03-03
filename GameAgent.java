@@ -6,6 +6,7 @@ import java.util.Queue;
 
 public class GameAgent {
 //	private KnowledgeBase kb;
+	final int MINE_PLACEHOLDER = Integer.MIN_VALUE;
 	private int[][] knownWorld;
 	private HashSet<MinePoint> closedSet;
 	private int dim;
@@ -100,7 +101,7 @@ public class GameAgent {
 					MinePoint np = new MinePoint(p.getX() + xDirection[i], p.getY() + yDirection[i]);
 					if (knownWorld[np.getX()][np.getY()] == Integer.MAX_VALUE) {
 						safePoints.add(np);
-						knownWorld[np.getX()][np.getY()] = 0;
+//						knownWorld[np.getX()][np.getY()] = 0;
 						closedSet.remove(np);
 						findNewInfo = true;
 					}
@@ -116,7 +117,7 @@ public class GameAgent {
 						mineCount++;
 						temp.add(np);
 					} else {
-						if (knownWorld[np.getX()][np.getY()] == -1) {
+						if (knownWorld[np.getX()][np.getY()] == MINE_PLACEHOLDER) {
 							mineCount++;
 						} 
 					}
@@ -127,7 +128,7 @@ public class GameAgent {
 			} else {
 				while (!temp.isEmpty()) {
 					MinePoint nextPoint = temp.poll();
-					knownWorld[nextPoint.getX()][nextPoint.getY()] = -1;
+					knownWorld[nextPoint.getX()][nextPoint.getY()] = MINE_PLACEHOLDER;
 					minePoints.add(nextPoint);
 					closedSet.remove(nextPoint);
 				}
