@@ -13,10 +13,12 @@ public class ImprovedGameAgent {
 	private HashSet<MinePoint> safePoints;
 	private HashSet<MinePoint> minePoints;
 	private Queue<Action> unsurePoints;
+	private int randomCount;
 
 	
 	public ImprovedGameAgent(int dim) {
 		this.dim = dim;
+		this.randomCount = 0;
 		initCloseSet();
 		safePoints = new HashSet<MinePoint>();
 		minePoints = new HashSet<MinePoint>();
@@ -33,6 +35,7 @@ public class ImprovedGameAgent {
 					return goNext(); // update from knowledge base
 				} else {
 					nextPoint = kb.randomlyPickup();
+					this.randomCount += 1;
 					System.out.println("Randomly pick up : " + nextPoint); 
 				}
 				return new Action(nextPoint, 1);
@@ -81,21 +84,20 @@ public class ImprovedGameAgent {
 
 	
 	/**
-	Check the giving point is valid or not.
-	@param x x value of point.
-	@param y y value of point.
-	@return true if the point is valid, otherwise false.
-	*/
-	private Boolean checkValidPosition(int x, int y) {
-		return (x < 0 || x > this.dim - 1 || y < 0 || y > this.dim - 1) ? false : true; 
-	}
-	/**
 	Tell controller, game over.
 	Means all the cell are explored already.
 	@return true game over, otherwise false;
 	*/
 	public boolean gameOver() {
 		return kb.gameOver();
+	}
+	
+	/**
+	how many times we randomly pick up a point instead of compute.
+	@param int times we randomly pick up
+	*/
+	public int getRandomCounter() {
+		return this.randomCount;
 	}
 	
 }

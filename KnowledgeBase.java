@@ -99,9 +99,9 @@ public class KnowledgeBase {
 //			return true;
 //		} 
 		
-		int roundCounter = 0;
-		int[][] probCounter = new int[dim][dim];
-		
+//		int roundCounter = 0;
+//		int[][] probCounter = new int[dim][dim];
+
 
 				
 		if (boundary.size() == 0) {
@@ -116,13 +116,12 @@ public class KnowledgeBase {
 		while (apit.hasNext()) {
 			Queue<MinePoint> firstRoundSafe = new LinkedList<MinePoint>();
 			Queue<MinePoint> firstRoundMine = new LinkedList<MinePoint>();
-			Queue<MinePoint> secondRoundSafe = new LinkedList<MinePoint>();
-			Queue<MinePoint> secondRoundMine = new LinkedList<MinePoint>();
+//			Queue<MinePoint> secondRoundSafe = new LinkedList<MinePoint>();
+//			Queue<MinePoint> secondRoundMine = new LinkedList<MinePoint>();
 			MinePoint ap = apit.next();
 			System.out.println("ap is " + ap + " : "  + boundary);
 			
-			int firstRound = assumeMine(ap, apit, firstRoundSafe, firstRoundMine, probCounter);
-			roundCounter += firstRound;
+			int firstRound = assumeMine(ap, apit, firstRoundSafe, firstRoundMine);
 			if (firstRound > -1) {
 				if (!assumeSafe(ap, apit)) {
 					while (!firstRoundSafe.isEmpty()) {
@@ -174,8 +173,7 @@ public class KnowledgeBase {
 	}
 	
 	private int assumeMine(MinePoint testPoint, Iterator<MinePoint> apit, 
-							   Queue<MinePoint> firstRoundSafe, Queue<MinePoint> firstRoundMine, 
-							   int[][] probCounter) {
+							   Queue<MinePoint> firstRoundSafe, Queue<MinePoint> firstRoundMine) {
 		System.out.println("=========== hard test ================");
 		int[][]testWorld = copyEnv();	
 		if (hasContradiction(testWorld, testPoint, true)) {
@@ -192,7 +190,7 @@ public class KnowledgeBase {
 			while (!nextStep.isEmpty()) {
 				MinePoint currentPoint = nextStep.poll();
 				
-				System.out.println("now test next step : " + currentPoint);
+//				System.out.println("now test next step : " + currentPoint);
 				
 				if (donePoint.contains(currentPoint)) {
 					continue;
@@ -201,7 +199,7 @@ public class KnowledgeBase {
 					if (checkValidPosition(currentPoint.getX() + xDirection[i], currentPoint.getY() + yDirection[i])
 							&& testWorld[currentPoint.getX() + xDirection[i]][currentPoint.getY() + yDirection[i]] != Integer.MAX_VALUE) {
 						MinePoint cp = new MinePoint(currentPoint.getX() + xDirection[i], currentPoint.getY() + yDirection[i]);
-						System.out.println("now in currentpoint adjance : " + currentPoint +   " : " + cp +  " => " + testWorld[cp.getX()][cp.getY()]);
+//						System.out.println("now in currentpoint adjance : " + currentPoint +   " : " + cp +  " => " + testWorld[cp.getX()][cp.getY()]);
 						if (true) {   // remove here
 							int clue = testWorld[cp.getX()][cp.getY()]; 
 							int mineCounter = 0;
@@ -283,8 +281,9 @@ public class KnowledgeBase {
 		} else {
 			testWorld[testPoint.getX()][testPoint.getY()] = 0;
 			testWorld = computeClue(testWorld);
-//			if (!isVaildMap(testWorld, testPoint)) {
-			if (!isVaildMapAllCheck(testWorld, testPoint)) {
+//			if (!isVaildMap(testWorld, testPoint)) { //remove it 
+//			if (!isValidMapForPutSafe(testWorld, testPoint)) {
+			if (!isVaildMapAllCheck(testWorld, testPoint)) { // this works well
 				res = true;
 			}
 		}
@@ -301,6 +300,7 @@ public class KnowledgeBase {
 //	}
 	
 	private boolean isVaildMapAllCheck(int[][] map, MinePoint test) {
+		int count = 0;
 		boolean res = true;
 		System.out.println("test world looks like ===================================");
 		for (int row = 0; row < dim; row++) {
@@ -309,8 +309,10 @@ public class KnowledgeBase {
 			}
 			System.out.println();
 		}
+		System.out.println("test world looks like done ===================================");
 		for (int row = 0; row < dim; row++) {
 			for (int col = 0; col < dim; col++) {
+				count ++;
 				if (row == test.getX() && col == test.getY()) {
 					continue;
 				}
@@ -320,7 +322,7 @@ public class KnowledgeBase {
 				}
 			}	
 		}
-		System.out.println("test world looks like done ===================================");
+		System.out.println("in check all map : check " + count + " times...");
 		return res;
 	}
 	
@@ -342,10 +344,11 @@ public class KnowledgeBase {
 			if (checkValidPosition(testPoint.getX() + xDirection[i], testPoint.getY() + yDirection[i])) {
 				if (testWorld[testPoint.getX() + xDirection[i]][testPoint.getY() + yDirection[i]] == this.MINE_PLACEHOLDER) {
 					mineCount++;
-				}
-				if (testWorld[testPoint.getX() + xDirection[i]][testPoint.getY() + yDirection[i]] == Integer.MAX_VALUE 
-						||  testWorld[testPoint.getX() + xDirection[i]][testPoint.getY() + yDirection[i]] < 0) {
-					unknown++;
+				} else {
+					if (testWorld[testPoint.getX() + xDirection[i]][testPoint.getY() + yDirection[i]] == Integer.MAX_VALUE 
+							||  testWorld[testPoint.getX() + xDirection[i]][testPoint.getY() + yDirection[i]] < 0) {
+						unknown++;
+					}
 				}
 			}
 		}
@@ -358,66 +361,9 @@ public class KnowledgeBase {
 				return false;
 			}
 		}
+		System.out.println("map looks good");
 		return true;
 	}
-	
-	
-	/**
-	 * wrong?
-	when we put a mine or safe into a boundary cell, check if there are any violates.
-	*/
-	/*private boolean isVaildMap(int[][] testWorld, MinePoint testPoint) {
-		for (int i = 0; i < 8; i++) {
-			if (checkValidPosition(testPoint.getX() + xDirection[i], testPoint.getY() + yDirection[i])) {
-				MinePoint checkPoint = new MinePoint(testPoint.getX() + xDirection[i], testPoint.getY() + yDirection[i]);
-				int clue = testWorld[checkPoint.getX()][checkPoint.getY()];
-				
-				
-				// try ...
-				if (clue == MINE_PLACEHOLDER || clue == Integer.MAX_VALUE || clue == Integer.MAX_VALUE - 1) {
-					return true;
-				}
-				
-				
-				int mineCount = 0;
-				for (int j = 0; j < 8; j++) {
-					if (checkValidPosition(checkPoint.getX() + xDirection[j], checkPoint.getY() + yDirection[j])) {
-						if (testWorld[checkPoint.getX() + xDirection[j]][checkPoint.getY() + yDirection[j]] == MINE_PLACEHOLDER
-								|| testWorld[checkPoint.getX() + xDirection[j]][checkPoint.getY() + yDirection[j]] == Integer.MAX_VALUE) {
-							mineCount++;
-						}
-					}
-				}
-				if (mineCount < Math.abs(clue)) {
-					System.out.println("not vaild : " + testPoint + " : " + mineCount + " : " + clue);
-					return false;
-				}	
-			}
-		}
-		return true;
-	}
-	*/
-	
-//	private boolean misCheck(MinePoint p, int row, int col) {
-//		int mineCount = 0;
-//		int clue = knownWorld[row][col]; 
-//		for (int i = 0; i < 8; i++) {
-//			if (checkValidPosition(p.getX() + xDirection[i], p.getY() + yDirection[i])) {
-//				MinePoint np = new MinePoint(p.getX() + xDirection[i], p.getY() + yDirection[i]);
-//				if (knownWorld[np.getX()][np.getY()] == Integer.MAX_VALUE) {
-//					mineCount++;
-//				} else {
-//					if (knownWorld[np.getX()][np.getY()] == MINE_PLACEHOLDER) {
-//						mineCount++;
-//					} 
-//				}
-//			}
-//		}
-//		if (mineCount <= clue) {
-//			return true;
-//		}	
-//		return false;
-//	}
 	
 	private int[][] computeClue(int[][] testWorld) {
 		for (int row = 0; row < dim; row++) {
@@ -440,22 +386,7 @@ public class KnowledgeBase {
  			}
 		}
 		return testWorld;
-	}
-	
-	
-	private boolean doubleCheck() {
-		boolean addNew = false;
-		int unsureSize = unsurePoints.size();
-		for (int i = 0; i < unsureSize; i++) {
-			Action action = unsurePoints.poll();
-			if (basicCompute(action.getNextPoint(), action.getActionCango())) {
-				addNew = true;
-			}
-		}
-		return false;
-	}
-	
-	
+	}	
 	
 	/**
 	copy a known world map for testing.
@@ -464,32 +395,14 @@ public class KnowledgeBase {
 	*/
 	private int[][] copyEnv() {
 		int[][] testWorld = new int[dim][dim];
-//		testWorld = initMap(testWorld);
 		for (int row = 0; row < dim; row++) {
 			for (int col = 0; col < dim; col++) {
 				testWorld[row][col] = knownWorld[row][col];
-//				if (knownWorld[row][col] == MINE_PLACEHOLDER) {
-//					testWorld[row][col] = MINE_PLACEHOLDER;
-//				} else {
-//					if (knownWorld[row][col] == 0) {
-//						testWorld[row][col] = 0;
-//					}
-//				}
 			}
 		}
 		return testWorld;
 	}
-	/**
-	Initial a map, set all the value = MAX_VALUE;
-	*/
-	private int[][] initMap(int[][] map) {
-		for (int row = 0; row < map.length; row++) {
-			for (int col = 0; col < map[0].length; col++) {
-				map[row][col] = Integer.MAX_VALUE;
-			}
-		}
-		return map;
-	}
+
 	/**
 	update info from previous action
 	*/

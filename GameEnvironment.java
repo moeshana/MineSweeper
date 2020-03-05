@@ -38,6 +38,12 @@ public class GameEnvironment {
 		this.failedCounter = 0;
 		this.dropedMine = new LinkedList<MinePoint>();
 		initEnvironment();
+//		for (int i = 0 ; i < dim; i++) {
+//			for (int j = 0; j < dim; j++) {
+//				System.out.print(environment[i][j]+ "\t");
+//			}
+//			System.out.println();
+//		}
 	}
 	
 	/**
@@ -96,23 +102,23 @@ public class GameEnvironment {
 		}
 	}
 
-	/**
-	Check around how many mines.
-	@param x x value of position want to check
-	@param y y value of position want to check
-	@return int clue number
-	*/
-	private int checkClue(int x, int y) {
-		int clue = 0;
-		for (int i = 0; i < 8; i++) {
-			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
-				if (environment[x + xDirection[i]][y + yDirection[i]] == MINE_PLACEHOLDER) {
-					clue += 1;
-				}
-			}
-		}
-		return clue;
-	}
+//	/**
+//	Check around how many mines.
+//	@param x x value of position want to check
+//	@param y y value of position want to check
+//	@return int clue number
+//	*/
+//	private int checkClue(int x, int y) {
+//		int clue = 0;
+//		for (int i = 0; i < 8; i++) {
+//			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
+//				if (environment[x + xDirection[i]][y + yDirection[i]] == MINE_PLACEHOLDER) {
+//					clue += 1;
+//				}
+//			}
+//		}
+//		return clue;
+//	}
 	
 	/**
 	Update the clue after we put a new mine.

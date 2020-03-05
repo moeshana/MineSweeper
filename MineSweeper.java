@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 public class MineSweeper {
 	private final int DIM = 10;
 	private final int MINE_QUANTITY = 15;
+	private int random;
 	final int MINE_PLACEHOLDER = Integer.MIN_VALUE;
 	private final int SPOT_SIZE = 30;
 	private GameEnvironment gameEnv;
@@ -28,6 +29,7 @@ public class MineSweeper {
 		EventQueue.invokeLater(MineSweeper::new);
 	}
 	public MineSweeper() {
+		random = 0;
 		initWindow();
 		setupMap();
 //		whosYourDaddy();
@@ -62,6 +64,7 @@ public class MineSweeper {
 						mainWindow.repaint();
 					} else {
 						this.timer.stop();
+						this.random = gameAgent.getRandomCounter();
 						System.out.println(calcResult());
 						System.out.println("Done");
 						mainWindow.repaint();
@@ -95,6 +98,7 @@ public class MineSweeper {
 						mainWindow.repaint();
 					} else {
 						this.timer.stop();
+						this.random = gameAgent.getRandomCounter();
 						System.out.println(calcResult());
 						System.out.println("Done");
 						mainWindow.repaint();
@@ -154,7 +158,10 @@ public class MineSweeper {
 				}
 			}
 		}
-		return failedCount + " / " + MINE_QUANTITY + " : " + correct + " / " + total;
+		String resReport = "Random " + this.random + " times.(Include the first action)\n" + 
+				"Failed counter(#failedCounter/#totalMine) : " + failedCount + " / " + MINE_QUANTITY +
+				".\nMine marked by AI(#correctCounter/#totalMarkCounter): " + correct + " / " + total;
+		return resReport;
 	}
 	/**
 	Setup map for game
@@ -204,6 +211,19 @@ public class MineSweeper {
 			startGameImpoved();
 		});
 		displayPanel.add(improvePlay);
+		
+		JButton stop = new JButton("s");
+		stop.addActionListener(ae -> {
+			this.timer.stop();
+		});
+		displayPanel.add(stop);
+		
+		JButton resume = new JButton("r");
+		resume.addActionListener(ae -> {
+			this.timer.start();
+		});
+		displayPanel.add(resume);
+		
 		
 		
 		

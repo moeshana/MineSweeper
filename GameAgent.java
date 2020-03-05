@@ -10,6 +10,7 @@ public class GameAgent {
 	private int[][] knownWorld;
 	private HashSet<MinePoint> closedSet;
 	private int dim;
+	private int randomCount;
 	private HashSet<MinePoint> safePoints;
 	private HashSet<MinePoint> minePoints;
 	private Queue<Action> unsurePoints;
@@ -42,7 +43,7 @@ public class GameAgent {
 	
 	public GameAgent(int dim) {
 		this.dim = dim;
-//		this.kb = new KnowledgeBase(dim);
+		randomCount = 0;
 		initCloseSet();
 		safePoints = new HashSet<MinePoint>();
 		minePoints = new HashSet<MinePoint>();
@@ -59,6 +60,7 @@ public class GameAgent {
 				}
 				nextPoint = closedSet.iterator().next();
 				System.out.println("Randomly pick up : " + nextPoint); 
+				this.randomCount++;
 				closedSet.remove(nextPoint);
 				return new Action(nextPoint, 1);
 		} else {
@@ -178,5 +180,13 @@ public class GameAgent {
 	*/
 	private Boolean checkValidPosition(int x, int y) {
 		return (x < 0 || x > this.dim - 1 || y < 0 || y > this.dim - 1) ? false : true; 
+	}
+	
+	/**
+	how many times we randomly pick up a point instead of compute.
+	@param int times we randomly pick up
+	*/
+	public int getRandomCounter() {
+		return randomCount;
 	}
 }
