@@ -1,0 +1,49 @@
+safePoints => a hashset contains all the safe point we didn't use yet, inferenced from information we get.   
+minePoints => a hashset contains all the mine point we didn't use yet, inferenced from information we get.   
+boundary => a hashset contains all boundary unknown points.   
+knownWorld => int[][] record all sure info.
+unknownCells => we didn't go that cell yet.
+knownCell => we get there already.
+
+improved alg:
+a.get a new point from safePoints or minePoints, then get a feedback from gameEnv.
+b.check feedback:
+    1. all the neighborhoods of cell(clue 0) is safe.
+    2. for a giving clue and a cell(A), if #mines around cell(A) add #unknownCells  
+       around it equals clue, all the unknownCells are mines.
+    3. otherwise all the unknownCells are unsure, add boundary.
+    4. if safePoints and minePoints are empty, we compute our knowledgeBase.
+	4.0 pop a point from boundary
+	4.1 assume this point is a mine:
+	    check if there are any contradictions.
+		yes => this is not mine for sure => put this point into safePoints, and return for more info
+		no => (maybe mine maybe safe because information may not enough) => inference
+			put this mine into nextStep 
+			while (!nextStep.isempty()) {
+			    point next = nextStep.poll()
+			    check all 8 neighborhoods' clue of next.(use rule of 1,2)
+			    if find any new info, add this point to nextStep. and record this info
+				(do not change knownWorld. copy that info inside while loop)
+			}
+			check if there are any contradictions
+			    yes => not mine for sure => put this point into safePoints and return for more info
+			    no => can't make any decision. save all info(AAINFO).
+	4.2 assume this point it safe:
+	    check if there are any contradictions.
+		yes => this is not a safe cell => recall the info(AAINFO) we get from previous process.
+		no => we may do something here... but do nothing currently.... 
+    5. if no more information, safePoints and minePoints both are empty,
+       randomly open a new cell. (probably it is better that we don't open a unsure/boundary
+       cell if possible) 
+
+
+	/* old version... maybe use it later? not sure....
+	get a unknownCells' list of all the neighborhoods of knownCells.
+	foreach point in unknownCellsList:
+		put a mine into this Point, and check if there are any contradictions
+		if have, this is a safe cell, add this point into safePoints;
+		else no contradiction, put a safe into this Point, and check again
+			if have any contradicitons, there may be a mine, add this point into minePoints; 
+			else no contradictions, it need more info, marked it then continue;
+	*/
+    
