@@ -13,7 +13,7 @@ b.check feedback:
        around it equals clue, all the unknownCells are mines.
     3. otherwise all the unknownCells are unsure, add boundary.
     4. if safePoints and minePoints are empty, we compute our knowledgeBase.
-	4.0 pop a point from boundary
+	4.0 foreach point from boundary
 	4.1 assume this point is a mine:
 	    check if there are any contradictions.
 		yes => this is not mine for sure => put this point into safePoints, and return for more info
