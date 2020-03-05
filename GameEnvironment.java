@@ -2,6 +2,7 @@ package MineSweeper;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
 
 /**
 Create a mine sweeper environment. Include all mine and clue information.
@@ -20,7 +21,7 @@ public class GameEnvironment {
 	private int[] yDirection = {0, 1, 0, -1, 1, -1, 1, -1};
 	
 	public static void main(String[] args) {
-		GameEnvironment a = new GameEnvironment(5, 3);
+		GameEnvironment a = new GameEnvironment(5, 3, 213);
 		a.printEnvironment();
 		System.out.println("=====================");
 		for (int row = 0; row < a.dim; row++) {
@@ -31,19 +32,26 @@ public class GameEnvironment {
 		a.printEnvironment();
 	}
 	
-	public GameEnvironment(int dim, int mine) {
+	public GameEnvironment(int dim, int mine, int mode) {
 		this.dim = dim;
 		this.mineQuantity = mine;
 		this.environment = new int[dim][dim];
 		this.failedCounter = 0;
 		this.dropedMine = new LinkedList<MinePoint>();
-		initEnvironment();
-//		for (int i = 0 ; i < dim; i++) {
-//			for (int j = 0; j < dim; j++) {
-//				System.out.print(environment[i][j]+ "\t");
-//			}
-//			System.out.println();
-//		}
+//		initEnvironment();
+		switch(mode) {
+		case -1 :
+			falseNegativeEnvironment();
+		case 0 :
+			initUncertainEnvironment();
+			break;
+		case 1 :
+			falsePositiveEnvironment();
+			break;
+		default :
+			initEnvironment();			
+	}		
+
 	}
 	
 	/**
@@ -98,6 +106,89 @@ public class GameEnvironment {
 				environment[x][y] = MINE_PLACEHOLDER;
 				updateClue(x,y);
 				count++;
+			}
+		}
+	}
+	
+	private void falseNegativeClue(int x, int y) {
+		Random rand = new Random();
+		for (int i = 0; i < 8; i++) {
+			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
+				double doubleRandom = rand.nextDouble();
+				if (doubleRandom >= 0.2 & environment[x + xDirection[i]][y + yDirection[i]] != MINE_PLACEHOLDER) {
+					environment[x + xDirection[i]][y + yDirection[i]] += 1;
+				}
+			}
+		}
+	}
+
+	private void falsePositiveClue(int x, int y) {
+		Random rand = new Random();
+		int count = 1;
+		double doubleRandom = rand.nextDouble();
+
+		for (int i = 0; i < 8; i++) {
+			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
+				if (doubleRandom <= Math.pow(0.2, count) & environment[x + xDirection[i]][y + yDirection[i]] != MINE_PLACEHOLDER) {
+					environment[x + xDirection[i]][y + yDirection[i]] += 1;
+					count++;
+				}
+			}
+
+		}
+	}
+	
+	public void falseNegativeEnvironment() {
+		int count = 0;
+		while (count < this.mineQuantity) {
+			int x = (int)(Math.random() * dim);
+			int y = (int)(Math.random() * dim);
+			if (checkValidMine(x, y)) {
+				environment[x][y] = MINE_PLACEHOLDER;
+				falseNegativeClue(x,y);
+				count++;
+			}
+		}
+	}
+	
+	
+	public void falsePositiveEnvironment() {
+		int count = 0;
+		while (count < this.mineQuantity) {
+			int x = (int)(Math.random() * dim);
+			int y = (int)(Math.random() * dim);
+			if (checkValidMine(x, y)) {
+				environment[x][y] = MINE_PLACEHOLDER;
+				updateClue(x,y);
+				count++;
+			}
+		}
+
+		for(int i=0; i< this.dim; i=i+1){
+			for(int j=0; j< this.dim; j=j+1){
+				if(environment[i][j] != MINE_PLACEHOLDER){
+					falsePositiveClue(i,j);
+				}
+			}
+		}
+	}
+	
+	public void initUncertainEnvironment() {
+		int count = 0;
+		while (count < this.mineQuantity) {
+			int x = (int)(Math.random() * dim);
+			int y = (int)(Math.random() * dim);
+			if (checkValidMine(x, y)) {
+				environment[x][y] = MINE_PLACEHOLDER;
+				falseNegativeClue(x,y);
+				count++;
+			}
+		}
+		for(int i=0; i< this.dim; i=i+3){
+			for(int j=0; j< this.dim; j=j+3){
+				if(environment[i][j] != MINE_PLACEHOLDER){
+					falsePositiveClue(i,j);
+				}
 			}
 		}
 	}

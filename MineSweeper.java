@@ -13,7 +13,7 @@ import javax.swing.JPanel;
 
 public class MineSweeper {
 	private final int DIM = 10;
-	private final int MINE_QUANTITY = 15;
+	private final int MINE_QUANTITY = 25;
 	private int random;
 	final int MINE_PLACEHOLDER = Integer.MIN_VALUE;
 	private final int SPOT_SIZE = 30;
@@ -31,7 +31,7 @@ public class MineSweeper {
 	public MineSweeper() {
 		random = 0;
 		initWindow();
-		setupMap();
+		setupMap(213);
 //		whosYourDaddy();
 	}
 	private void startGameBasic() {
@@ -166,8 +166,8 @@ public class MineSweeper {
 	/**
 	Setup map for game
 	*/
-	private void setupMap() {
-		gameEnv = new GameEnvironment(DIM, MINE_QUANTITY);
+	private void setupMap(int mode) {
+		gameEnv = new GameEnvironment(DIM, MINE_QUANTITY, mode);
 		map = new MineSpot[DIM][DIM];
 		for (int row = 0; row < DIM; row++) {
 			for (int col = 0; col < DIM; col++) {

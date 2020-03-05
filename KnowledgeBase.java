@@ -418,7 +418,8 @@ public class KnowledgeBase {
 	@return true if the point is valid, otherwise false.
 	*/
 	private Boolean checkValidPosition(int x, int y) {
-		return (x < 0 || x > this.dim - 1 || y < 0 || y > this.dim - 1) ? false : true; 
+//		return (x < 0 || x > this.dim - 1 || y < 0 || y > this.dim - 1) ? false : true; 
+		return x >= 0 && x <= this.dim - 1 && y >= 0 && y <= this.dim - 1;
 	}
 	/**
 	Tell controller, game over.
