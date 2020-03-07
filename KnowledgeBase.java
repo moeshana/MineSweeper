@@ -361,7 +361,7 @@ public class KnowledgeBase {
 				return false;
 			}
 		}
-		System.out.println("map looks good");
+// 		System.out.println("map looks good");
 		return true;
 	}
 	
