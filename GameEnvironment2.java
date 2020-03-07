@@ -10,8 +10,7 @@ This information is not available for agent.
 When agent want to go specific cell, we get that information of specific cell from this class.
 @author Junfeng Zhao
 */
-public class GameEnvironment {
-	final int MINE_PLACEHOLDER = Integer.MIN_VALUE;
+public class GameEnvironment2 {
 	private int failedCounter;
 	private int dim;
 	private int mineQuantity;
@@ -20,41 +19,28 @@ public class GameEnvironment {
 	private int[] xDirection = {1, 0, -1, 0, 1, 1, -1, -1};
 	private int[] yDirection = {0, 1, 0, -1, 1, -1, 1, -1};
 	
-	public static void main(String[] args) {
-		GameEnvironment a = new GameEnvironment(5, 3, 213);
-		a.printEnvironment();
-		System.out.println("=====================");
-		for (int row = 0; row < a.dim; row++) {
-			for (int col = 0; col < a.dim; col++) {
-				a.mistake(row, col);
-			}
-		}
-		a.printEnvironment();
-	}
+
 	
-	public GameEnvironment(int dim, int mine, int mode) {
+	public GameEnvironment2(int dim, int mine, int mode) {
 		this.dim = dim;
 		this.mineQuantity = mine;
 		this.environment = new int[dim][dim];
 		this.failedCounter = 0;
 		this.dropedMine = new LinkedList<MinePoint>();
-//		initEnvironment();
 		switch(mode) {
-		case -1 :
-			falseNegativeEnvironment();
-			break;
-		case 0 :
-			initUncertainEnvironment();
-			break;
-		case 1 :
-			falsePositiveEnvironment();
-			break;
-		default :
-			initEnvironment();	
-	}		
-
+			case -1 :
+				falseNegativeEnvironment();
+			case 0 :
+				initUncertainEnvironment();
+				break;
+			case 1 :
+				falsePositiveEnvironment();
+				break;
+			default :
+				initEnvironment();			
+		}		
 	}
-	
+
 	/**
 	Get a information of a specific cell. It may be mine or clue.
 	@param x x value of cell.
@@ -89,7 +75,7 @@ public class GameEnvironment {
 	@param y y value of mine discovered by mistake
 	*/
 	public void mistake(int x, int y) {
-		if (environment[x][y] == MINE_PLACEHOLDER) {
+		if (environment[x][y] == -1) {
 			this.failedCounter += 1;
 			System.out.println("Failed " + failedCounter + " times (point " + x + " : " + y + ")");
 		}
@@ -104,19 +90,106 @@ public class GameEnvironment {
 			int x = (int)(Math.random() * dim);
 			int y = (int)(Math.random() * dim);
 			if (checkValidMine(x, y)) {
-				environment[x][y] = MINE_PLACEHOLDER;
+				environment[x][y] = -1;
 				updateClue(x,y);
 				count++;
 			}
 		}
 	}
+
+	public void initUncertainEnvironment() {
+		int count = 0;
+		while (count < this.mineQuantity) {
+			int x = (int)(Math.random() * dim);
+			int y = (int)(Math.random() * dim);
+			if (checkValidMine(x, y)) {
+				environment[x][y] = -1;
+				falseNegativeClue(x,y);
+				count++;
+			}
+		}
+		for(int i=0; i< this.dim; i=i+3){
+			for(int j=0; j< this.dim; j=j+3){
+				if(environment[i][j] != -1){
+					falsePositiveClue(i,j);
+				}
+			}
+		}
+	}
+
+	public void falsePositiveEnvironment() {
+		int count = 0;
+		while (count < this.mineQuantity) {
+			int x = (int)(Math.random() * dim);
+			int y = (int)(Math.random() * dim);
+			if (checkValidMine(x, y)) {
+				environment[x][y] = -1;
+				updateClue(x,y);
+				count++;
+			}
+		}
+
+		for(int i=0; i< this.dim; i=i+1){
+			for(int j=0; j< this.dim; j=j+1){
+				if(environment[i][j] != -1){
+					falsePositiveClue(i,j);
+				}
+			}
+		}
+	}
+
+	public void falseNegativeEnvironment() {
+		int count = 0;
+		while (count < this.mineQuantity) {
+			int x = (int)(Math.random() * dim);
+			int y = (int)(Math.random() * dim);
+			if (checkValidMine(x, y)) {
+				environment[x][y] = -1;
+				falseNegativeClue(x,y);
+				count++;
+			}
+		}
+	}
+
+	/**
+	Check around how many mines.
+	@param x x value of position want to check
+	@param y y value of position want to check
+	@return int clue number
+	*/
+	private int checkClue(int x, int y) {
+		int clue = 0;
+		for (int i = 0; i < 8; i++) {
+			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
+				if (environment[x + xDirection[i]][y + yDirection[i]] == -1) {
+					clue += 1;
+				}
+			}
+		}
+		return clue;
+	}
 	
+	/**
+	Update the clue after we put a new mine.
+	@param x x value of mine. 
+	@param y y value of mine.
+	*/
+	private void updateClue(int x, int y) {
+		for (int i = 0; i < 8; i++) {
+			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
+				if (environment[x + xDirection[i]][y + yDirection[i]] != -1) {
+					environment[x + xDirection[i]][y + yDirection[i]] += 1;
+				}
+			}
+		}
+	}
+
 	private void falseNegativeClue(int x, int y) {
 		Random rand = new Random();
 		for (int i = 0; i < 8; i++) {
 			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
 				double doubleRandom = rand.nextDouble();
-				if (doubleRandom >= 0.2 & environment[x + xDirection[i]][y + yDirection[i]] != MINE_PLACEHOLDER) {
+				if (doubleRandom >= 0.2 & environment[x + xDirection[i]][y + yDirection[i]] != -1) {
 					environment[x + xDirection[i]][y + yDirection[i]] += 1;
 				}
 			}
@@ -130,100 +203,12 @@ public class GameEnvironment {
 
 		for (int i = 0; i < 8; i++) {
 			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
-				if (doubleRandom <= Math.pow(0.2, count) & environment[x + xDirection[i]][y + yDirection[i]] != MINE_PLACEHOLDER) {
+				if (doubleRandom <= Math.pow(0.2, count) & environment[x + xDirection[i]][y + yDirection[i]] != -1) {
 					environment[x + xDirection[i]][y + yDirection[i]] += 1;
 					count++;
 				}
 			}
 
-		}
-	}
-	
-	public void falseNegativeEnvironment() {
-		int count = 0;
-		while (count < this.mineQuantity) {
-			int x = (int)(Math.random() * dim);
-			int y = (int)(Math.random() * dim);
-			if (checkValidMine(x, y)) {
-				environment[x][y] = MINE_PLACEHOLDER;
-				falseNegativeClue(x,y);
-				count++;
-			}
-		}
-	}
-	
-	
-	public void falsePositiveEnvironment() {
-		int count = 0;
-		while (count < this.mineQuantity) {
-			int x = (int)(Math.random() * dim);
-			int y = (int)(Math.random() * dim);
-			if (checkValidMine(x, y)) {
-				environment[x][y] = MINE_PLACEHOLDER;
-				updateClue(x,y);
-				count++;
-			}
-		}
-
-		for(int i=0; i< this.dim; i=i+1){
-			for(int j=0; j< this.dim; j=j+1){
-				if(environment[i][j] != MINE_PLACEHOLDER){
-					falsePositiveClue(i,j);
-				}
-			}
-		}
-	}
-	
-	public void initUncertainEnvironment() {
-		int count = 0;
-		while (count < this.mineQuantity) {
-			int x = (int)(Math.random() * dim);
-			int y = (int)(Math.random() * dim);
-			if (checkValidMine(x, y)) {
-				environment[x][y] = MINE_PLACEHOLDER;
-				falseNegativeClue(x,y);
-				count++;
-			}
-		}
-		for(int i=0; i< this.dim; i=i+3){
-			for(int j=0; j< this.dim; j=j+3){
-				if(environment[i][j] != MINE_PLACEHOLDER){
-					falsePositiveClue(i,j);
-				}
-			}
-		}
-	}
-
-//	/**
-//	Check around how many mines.
-//	@param x x value of position want to check
-//	@param y y value of position want to check
-//	@return int clue number
-//	*/
-//	private int checkClue(int x, int y) {
-//		int clue = 0;
-//		for (int i = 0; i < 8; i++) {
-//			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
-//				if (environment[x + xDirection[i]][y + yDirection[i]] == MINE_PLACEHOLDER) {
-//					clue += 1;
-//				}
-//			}
-//		}
-//		return clue;
-//	}
-	
-	/**
-	Update the clue after we put a new mine.
-	@param x x value of mine. 
-	@param y y value of mine.
-	*/
-	private void updateClue(int x, int y) {
-		for (int i = 0; i < 8; i++) {
-			if (checkValidPosition(x + xDirection[i], y + yDirection[i])) {
-				if (environment[x + xDirection[i]][y + yDirection[i]] != MINE_PLACEHOLDER) {
-					environment[x + xDirection[i]][y + yDirection[i]] += 1;
-				}
-			}
 		}
 	}
 	
@@ -234,7 +219,7 @@ public class GameEnvironment {
 	@return true if the point is valid, otherwise false.
 	*/
 	private Boolean checkValidPosition(int x, int y) {
-		return (x < 0 || x > this.dim - 1 || y < 0 || y > this.dim - 1) ? false : true; 
+		return x >= 0 && x <= this.dim - 1 && y >= 0 && y <= this.dim - 1;
 	}
 	
 	/**
@@ -244,7 +229,7 @@ public class GameEnvironment {
 	@return true if there is no mine, otherwise there is a mine already.
 	*/
 	private Boolean checkValidMine(int x, int y) {
-		return environment[x][y] == MINE_PLACEHOLDER ? false : true;
+		return environment[x][y] != -1;
 	}
 	
 	/**
@@ -254,15 +239,11 @@ public class GameEnvironment {
 	public int getFailedCounter() {
 		return this.failedCounter;
 	}
-	
-	/**
-	reset the map, put all removed mine back
-	*/
 	public void recover() {
 		this.failedCounter = 0;
 		while (!dropedMine.isEmpty()) {
 			MinePoint np = dropedMine.poll();
-			environment[np.getX()][np.getY()] = MINE_PLACEHOLDER;
+			environment[np.getX()][np.getY()] = -1;
 			updateClue(np.getX(), np.getY());
 		}
 	}
