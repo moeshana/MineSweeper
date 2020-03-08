@@ -6,11 +6,13 @@ import java.awt.EventQueue;
 import java.awt.GridLayout;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import javax.swing.*;
 
 public class MineSweeper {
     private final int DIM = 10;
-    private final int MINE_QUANTITY = 25;
+    private final int MINE_QUANTITY = 10;
     private int random;
     final int MINE_PLACEHOLDER = Integer.MIN_VALUE;
     private final int SPOT_SIZE = 30;
@@ -22,10 +24,13 @@ public class MineSweeper {
     private javax.swing.Timer timer;
 
     private MineSpot[][] gameMap;
+    private MineSpot[][] hiddenMap;
     private JFrame playWindow;
     private JPanel gamePanel;
     private JTextField safeTextField;
     private  JTextField mineTextField;
+    private  JToggleButton toggleButton;
+
 
     public static void main(String... args) {
         EventQueue.invokeLater(MineSweeper::new);
@@ -34,7 +39,7 @@ public class MineSweeper {
         random = 0;
         initWindow();
         setupMap(213);
-//        whosYourDaddy();
+        //whosYourDaddy();
     }
     private void startGameBasic() {
         restart();
@@ -168,30 +173,53 @@ public class MineSweeper {
         this.mainWindow.repaint();
     }
 
-    private void whoIsYourDaddy() {
-        for (int row = 0; row < DIM; row++) {
-            for (int col = 0; col < DIM; col++) {
-                int info = gameEnv.iWannaInfo(row, col);
-                if (info == -1) {
-                    gameMap[row][col].setMayMine(true);
-                } else {
-                    gameMap[row][col].setClue(info);
+    private void whoIsYourDaddy(boolean revealed) {
+        if(!revealed){
+            hiddenMap = new MineSpot[DIM][DIM];
+            for (int row = 0; row < DIM; row++) {
+                for (int col = 0; col < DIM; col++) {
+                    int info = gameEnv.iWannaInfo(row, col);
+                    if (info == -1) {
+                        MineSpot spot = new MineSpot(SPOT_SIZE);
+                        hiddenMap[row][col] = spot;
+                        gameMap[row][col].setMayMine(true);
+                    } else {
+                        MineSpot spot = new MineSpot(SPOT_SIZE);
+                        hiddenMap[row][col] = spot;
+                        gameMap[row][col].setClue(info);
+                    }
                 }
             }
-        }
-        this.playWindow.repaint();
-        for (int row = 0; row < DIM; row++) {
-            for (int col = 0; col < DIM; col++) {
-                int info = gameEnv.iWannaInfo(row, col);
-                if (info == MINE_PLACEHOLDER) {
-                    gameMap[row][col].setMayMine(true);
-                } else {
-                    gameMap[row][col].setClue(info);
-                    gameMap[row][col].setMayMine(false);
+            this.playWindow.repaint();
+            for (int row = 0; row < DIM; row++) {
+                for (int col = 0; col < DIM; col++) {
+                    int info = gameEnv.iWannaInfo(row, col);
+                    if (info == MINE_PLACEHOLDER) {
+                        MineSpot spot = new MineSpot(SPOT_SIZE);
+                        hiddenMap[row][col] = spot;
+                        gameMap[row][col].setMayMine(true);
+                    } else {
+                        MineSpot spot = new MineSpot(SPOT_SIZE);
+                        hiddenMap[row][col] = spot;
+                        gameMap[row][col].setClue(info);
+                        gameMap[row][col].setMayMine(false);
+                    }
                 }
             }
+            this.playWindow.repaint();
         }
-        this.playWindow.repaint();
+
+        else{
+            gamePanel.removeAll();
+            gamePanel.revalidate();
+            gameMap = hiddenMap;
+            for (int row = 0; row < DIM; row++) {
+                for (int col = 0; col < DIM; col++) {
+                    gamePanel.add(hiddenMap[row][col]);
+                }
+            }
+            this.playWindow.repaint();
+        }
     }
 
     private String calcResult(){
@@ -287,8 +315,6 @@ public class MineSweeper {
         });
         displayPanel.add(resume);
 
-
-
         JButton uncertainMap = new JButton("Uncertain Map");
         uncertainMap.addActionListener(ae -> {
             newMap(0);
@@ -318,10 +344,19 @@ public class MineSweeper {
 
         JPanel playPanel;
         JPanel playPanel2;
-        JButton revealMap = new JButton("Cheat: Map");
-        revealMap.addActionListener(e -> {
-            whoIsYourDaddy();
-        });
+
+        toggleButton = new JToggleButton("Reveal/Hide Map");
+        ItemListener itemListener = itemEvent -> {
+            int state = itemEvent.getStateChange();
+            if (state == ItemEvent.SELECTED) {
+                whoIsYourDaddy(false);
+            }
+            else {
+                whoIsYourDaddy(true);
+            }
+        };
+        toggleButton.addItemListener(itemListener);
+
 
         JButton safeButton = new JButton("Choose");
         safeTextField = new JTextField("Input form: X(v),Y(h)");
@@ -389,7 +424,7 @@ public class MineSweeper {
             }
         });
 
-        playWindow = new JFrame("MineSweeper User");
+        playWindow = new JFrame("Game User");
         playWindow.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
         gamePanel = new JPanel();
@@ -403,7 +438,8 @@ public class MineSweeper {
         playWindow.setVisible(true);
 
         playPanel = new JPanel();
-        playPanel.add(revealMap);
+        playPanel.add(toggleButton);
+        playPanel.setLayout(new GridLayout(1,2));
         playPanel2 =  new JPanel();
         playPanel2.setLayout(new GridLayout(2,2));
         playPanel2.add(safeButton);
@@ -411,7 +447,9 @@ public class MineSweeper {
         playPanel2.add(mineButton);
 
         playPanel2.add(mineTextField);
+
         playPanel2.setPreferredSize(new Dimension(SPOT_SIZE * (DIM+1), 60));
+
         playWindow.add(playPanel, BorderLayout.SOUTH);
         playWindow.add(playPanel2, BorderLayout.NORTH);
         playWindow.add(gamePanel, BorderLayout.CENTER);
@@ -429,6 +467,9 @@ public class MineSweeper {
         setupMap(mode);
         playWindow.repaint();
         mainWindow.repaint();
+        if (toggleButton.isSelected()) {
+        	toggleButton.setSelected(false);
+        }
     }
 }
 
