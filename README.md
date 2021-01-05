@@ -1,9 +1,5 @@
 # RU440_2
 MineSweeper   
- hehe..................   
- lol...................    
- wwwwwwwwwwwwwwwwwwwwww    
- HI  <= DT  
  I. EVERY THING IN MineSweeper (package MineSweeper)  
  
  II. notation in map/knownWorld/testWorld：  
@@ -13,7 +9,4 @@ MineSweeper
  negative number(except MIN_VALUE) : clue during inference process(don't want to interference any clue which get from game env)  
  Integer.MIN_VALUE/MINE_PLACEHOLDER : mine   
  
- III. next....     
- add probability     
- keep inference when it attempts put a safe mark to a undiscovered cell    
- double check(when we can get nothing from inference, before we randomly pick up new point, we may need to double check if there are no more info.)  
+ 
