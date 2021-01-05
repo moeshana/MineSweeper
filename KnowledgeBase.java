@@ -75,14 +75,13 @@ public class KnowledgeBase {
 				}
 			}
 			if (mineCount != clue) {
-				unsurePoints.add(new Action(p, clue));    //<================================================================review here
+				unsurePoints.add(new Action(p, clue));    
 			} else {
 				while (!temp.isEmpty()) {
 					MinePoint nextPoint = temp.poll();
 					knownWorld[nextPoint.getX()][nextPoint.getY()] = MINE_PLACEHOLDER;
 					minePoints.add(nextPoint);
 					boundary.remove(nextPoint);
-					System.out.println("ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg" + nextPoint);
 				}
 				findNewInfo = true;
 			}
@@ -174,7 +173,6 @@ public class KnowledgeBase {
 	
 	private int assumeMine(MinePoint testPoint, Iterator<MinePoint> apit, 
 							   Queue<MinePoint> firstRoundSafe, Queue<MinePoint> firstRoundMine) {
-		System.out.println("=========== hard test ================");
 		int[][]testWorld = copyEnv();	
 		if (hasContradiction(testWorld, testPoint, true)) {
 			System.out.println(testPoint + "get here safe");
@@ -302,14 +300,6 @@ public class KnowledgeBase {
 	private boolean isVaildMapAllCheck(int[][] map, MinePoint test) {
 		int count = 0;
 		boolean res = true;
-		System.out.println("test world looks like ===================================");
-		for (int row = 0; row < dim; row++) {
-			for (int col = 0; col < dim; col++) {
-				System.out.print(map[row][col] + " ");
-			}
-			System.out.println();
-		}
-		System.out.println("test world looks like done ===================================");
 		for (int row = 0; row < dim; row++) {
 			for (int col = 0; col < dim; col++) {
 				count ++;
