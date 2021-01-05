@@ -39,7 +39,6 @@ public class MineSweeper {
         random = 0;
         initWindow();
         setupMap(213);
-        //whosYourDaddy();
     }
     private void startGameBasic() {
         restart();
