@@ -1,4 +1,4 @@
-# RU440_2
+# MineSweeper
 MineSweeper   
  I. EVERY THING IN MineSweeper (package MineSweeper)  
  
